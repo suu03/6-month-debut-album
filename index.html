@@ -92,23 +92,37 @@
     .track-list { display: grid; gap: 2px; }
     .track {
       display: grid;
-      grid-template-columns: 32px 1fr 30px;
+      grid-template-columns: 32px minmax(0, 1fr);
       gap: 12px;
       align-items: center;
       min-height: 58px;
       padding: 8px 10px;
       border-bottom: 1px solid var(--line);
+      border-top: 0;
+      border-left: 0;
+      border-right: 0;
+      background: transparent;
       color: var(--muted);
       text-align: left;
-      transition: background .2s, color .2s;
+      cursor: pointer;
+      transition: background .2s, color .2s, box-shadow .2s;
     }
     .track:first-child { border-top: 1px solid var(--line); }
-    .track:hover:not(:disabled), .track.is-active { color: #f5f1e8; }
-    .track.is-active { background: rgb(255 255 255 / 4%); }
+    .track.is-active {
+      color: #f5f1e8;
+      background: rgb(254 207 103 / 6%);
+      box-shadow: inset 2px 0 var(--accent);
+    }
+    @media (hover: hover) {
+      .track:hover:not(:disabled) {
+        color: var(--accent);
+        background: rgb(254 207 103 / 10%);
+      }
+    }
+    .track:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .track:disabled { cursor: default; opacity: .48; }
     .track-number { color: var(--accent); font-size: 11px; }
     .track-name { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
-    .track-time { font-size: 10px; text-align: right; }
 
     .timeline { margin-top: 27px; }
     .time-labels {
@@ -268,9 +282,8 @@
           button.className = `track${index === currentIndex ? " is-active" : ""}`;
           button.disabled = !track;
           button.setAttribute("aria-label", `${index + 1}曲目 ${track.name} を再生`);
-          button.innerHTML = `<span class="track-number">${String(index + 1).padStart(2, "0")}</span><span class="track-name"></span><span class="track-time"></span>`;
+          button.innerHTML = `<span class="track-number">${String(index + 1).padStart(2, "0")}</span><span class="track-name"></span>`;
           button.querySelector(".track-name").textContent = track.name;
-          button.querySelector(".track-time").textContent = track.duration > 0 ? formatTime(track.duration) : "—";
           button.addEventListener("click", () => loadTrack(index, true));
           trackList.append(button);
         }
