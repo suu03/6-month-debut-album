@@ -154,7 +154,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 23px;
+      gap: clamp(10px, 3vw, 23px);
       margin: 22px 0 27px;
     }
     .icon-button {
@@ -228,6 +228,9 @@
         </div>
 
         <div class="controls" aria-label="再生コントロール">
+          <button class="icon-button" id="shuffle" type="button" aria-label="シャッフル再生" title="シャッフル再生" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h3c5 0 7 12 12 12h3m-4-4 4 4-4 4M3 18h3c2 0 3.5-2 5-5m2-2c1.5-3 3-5 5-5h3m-4-4 4 4-4 4"/></svg>
+          </button>
           <button class="icon-button" id="previous" type="button" aria-label="前の曲" title="前の曲" disabled>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5v14M19 6l-10 6 10 6V6Z"/></svg>
           </button>
@@ -236,6 +239,9 @@
           </button>
           <button class="icon-button" id="next" type="button" aria-label="次の曲" title="次の曲" disabled>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 5v14M5 6l10 6-10 6V6Z"/></svg>
+          </button>
+          <button class="icon-button is-on" id="repeat" type="button" aria-label="リピート：全曲" title="リピート：全曲" aria-pressed="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m17 2 4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4m14-1v2a3 3 0 0 1-3 3H3"/><text id="repeat-one" x="12" y="15" text-anchor="middle" fill="currentColor" stroke="none" font-size="9" font-family="sans-serif" hidden>1</text></svg>
           </button>
         </div>
 
@@ -257,6 +263,9 @@
       const playIcon = document.querySelector("#play-icon");
       const previousButton = document.querySelector("#previous");
       const nextButton = document.querySelector("#next");
+      const shuffleButton = document.querySelector("#shuffle");
+      const repeatButton = document.querySelector("#repeat");
+      const repeatOne = document.querySelector("#repeat-one");
       const seek = document.querySelector("#seek");
       const elapsed = document.querySelector("#elapsed");
       const durationLabel = document.querySelector("#duration");
@@ -273,6 +282,20 @@
         duration: 0
       }));
       let currentIndex = -1;
+      let shuffle = false;
+      let repeatMode = "all";
+      let playOrder = tracks.map((_, index) => index);
+
+      const resetOrder = () => {
+        playOrder = tracks.map((_, index) => index);
+        if (!shuffle) return;
+        const remaining = playOrder.filter((index) => index !== currentIndex);
+        for (let i = remaining.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [remaining[i], remaining[j]] = [remaining[j], remaining[i]];
+        }
+        playOrder = currentIndex < 0 ? remaining : [currentIndex, ...remaining];
+      };
 
       const formatTime = (seconds) => {
         if (!Number.isFinite(seconds)) return "0:00";
@@ -292,7 +315,10 @@
           button.setAttribute("aria-label", `${index + 1}曲目 ${track.name} を再生`);
           button.innerHTML = `<span class="track-number">${String(index + 1).padStart(2, "0")}</span><span class="track-name"></span>`;
           button.querySelector(".track-name").textContent = track.name;
-          button.addEventListener("click", () => loadTrack(index, true));
+          button.addEventListener("click", () => {
+            loadTrack(index, true);
+            resetOrder();
+          });
           trackList.append(button);
         }
         const hasTracks = tracks.length > 0;
@@ -315,11 +341,42 @@
         }
       };
 
-      const playNext = () => {
+      const playNext = (automatic = false) => {
         if (tracks.length === 0) return;
-        const nextIndex = (currentIndex + 1) % tracks.length;
-        loadTrack(nextIndex, true);
+        if (automatic && repeatMode === "one") {
+          loadTrack(currentIndex, true);
+          return;
+        }
+        const position = playOrder.indexOf(currentIndex);
+        if (position === playOrder.length - 1) {
+          if (automatic && repeatMode === "off") return;
+          if (shuffle) {
+            resetOrder();
+            loadTrack(playOrder[tracks.length > 1 ? 1 : 0], true);
+            // Start the next shuffled cycle with the new track.
+            playOrder.push(playOrder.shift());
+            return;
+          }
+        }
+        loadTrack(playOrder[(position + 1) % playOrder.length], true);
       };
+
+      shuffleButton.addEventListener("click", () => {
+        shuffle = !shuffle;
+        shuffleButton.classList.toggle("is-on", shuffle);
+        shuffleButton.setAttribute("aria-pressed", String(shuffle));
+        resetOrder();
+      });
+      repeatButton.addEventListener("click", () => {
+        repeatMode = { all: "one", one: "off", off: "all" }[repeatMode];
+        const label = `リピート：${{ all: "全曲", one: "1曲", off: "オフ" }[repeatMode]}`;
+        repeatButton.classList.toggle("is-on", repeatMode !== "off");
+        repeatButton.setAttribute("aria-pressed", String(repeatMode !== "off"));
+        repeatButton.setAttribute("aria-label", label);
+        repeatButton.title = label;
+        repeatOne.style.display = repeatMode === "one" ? "block" : "none";
+      });
+      repeatOne.style.display = "none";
 
       playButton.addEventListener("click", () => {
         if (currentIndex < 0 && tracks.length) loadTrack(0);
@@ -332,10 +389,10 @@
 
       previousButton.addEventListener("click", () => {
         if (!tracks.length) return;
-        const previousIndex = currentIndex <= 0 ? tracks.length - 1 : currentIndex - 1;
-        loadTrack(previousIndex, true);
+        const position = playOrder.indexOf(currentIndex);
+        loadTrack(playOrder[(position - 1 + playOrder.length) % playOrder.length], true);
       });
-      nextButton.addEventListener("click", playNext);
+      nextButton.addEventListener("click", () => playNext());
 
       seek.addEventListener("input", () => {
         if (Number.isFinite(audio.duration) && audio.duration > 0) {
@@ -365,7 +422,7 @@
         playButton.setAttribute("aria-label", "再生");
         playButton.title = "再生";
       });
-      audio.addEventListener("ended", playNext);
+      audio.addEventListener("ended", () => playNext(true));
       audio.addEventListener("error", () => {
         if (audio.currentSrc) console.error("Audio file could not be loaded.", audio.error);
       });
