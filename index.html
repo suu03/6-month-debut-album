@@ -57,7 +57,7 @@
     main {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(300px, .88fr);
-      gap: clamp(40px, 8vw, 96px);
+      gap: clamp(24px, 4vw, 48px);
       align-items: center;
       padding: clamp(42px, 8vh, 82px) 0 58px;
     }
@@ -193,8 +193,9 @@
 
     @media (max-width: 700px) {
       .page { width: min(100% - 36px, 450px); padding-top: 20px; }
-      main { grid-template-columns: 1fr; gap: 35px; padding: 36px 0 42px; }
+      main { grid-template-columns: 1fr; gap: 16px; padding: 36px 0 42px; }
       .cover-wrap { width: min(82%, 330px); }
+      .artist-logo { margin-top: -24px; }
       .cover-title { font-size: clamp(48px, 14vw, 68px); }
       .description { margin-bottom: 22px; }
       footer { font-size: 8px; }
