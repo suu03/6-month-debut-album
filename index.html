@@ -169,7 +169,16 @@
       color: var(--muted);
       cursor: pointer;
     }
-    .icon-button:hover:not(:disabled), .icon-button.is-on { color: var(--accent); }
+    .icon-button.is-on { color: var(--accent); }
+    @media (hover: hover) {
+      .icon-button:hover:not(:disabled) { background: rgb(254 207 103 / 10%); }
+    }
+    .repeat-status {
+      margin: -12px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+      text-align: center;
+    }
     .icon-button:disabled { cursor: default; opacity: .35; }
     .icon-button svg { width: 18px; height: 18px; }
     .play-button {
@@ -245,6 +254,7 @@
           </button>
         </div>
 
+        <p class="repeat-status" id="repeat-status" role="status">リピート：全曲</p>
         <audio id="audio" preload="metadata"></audio>
       </section>
     </main>
@@ -266,6 +276,7 @@
       const shuffleButton = document.querySelector("#shuffle");
       const repeatButton = document.querySelector("#repeat");
       const repeatOne = document.querySelector("#repeat-one");
+      const repeatStatus = document.querySelector("#repeat-status");
       const seek = document.querySelector("#seek");
       const elapsed = document.querySelector("#elapsed");
       const durationLabel = document.querySelector("#duration");
@@ -349,7 +360,10 @@
         }
         const position = playOrder.indexOf(currentIndex);
         if (position === playOrder.length - 1) {
-          if (automatic && repeatMode === "off") return;
+          if (automatic && repeatMode === "off") {
+            audio.pause();
+            return;
+          }
           if (shuffle) {
             resetOrder();
             loadTrack(playOrder[tracks.length > 1 ? 1 : 0], true);
@@ -368,12 +382,13 @@
         resetOrder();
       });
       repeatButton.addEventListener("click", () => {
-        repeatMode = { all: "one", one: "off", off: "all" }[repeatMode];
+        repeatMode = { all: "off", off: "one", one: "all" }[repeatMode];
         const label = `リピート：${{ all: "全曲", one: "1曲", off: "オフ" }[repeatMode]}`;
         repeatButton.classList.toggle("is-on", repeatMode !== "off");
         repeatButton.setAttribute("aria-pressed", String(repeatMode !== "off"));
         repeatButton.setAttribute("aria-label", label);
         repeatButton.title = label;
+        repeatStatus.textContent = repeatMode === "off" ? "リピート：オフ（全曲再生後に停止）" : label;
         repeatOne.style.display = repeatMode === "one" ? "block" : "none";
       });
       repeatOne.style.display = "none";
