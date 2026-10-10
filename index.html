@@ -61,14 +61,17 @@
 
     main {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(300px, .88fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: clamp(24px, 4vw, 48px);
       align-items: center;
       padding: clamp(42px, 8vh, 82px) 0 58px;
     }
     .cover-wrap { width: min(100%, 440px); margin: auto; }
+    .album-info { text-align: center; }
     .cover {
       position: relative;
+      width: min(100%, 360px);
+      margin: 0 auto;
       overflow: hidden;
       aspect-ratio: 1;
       background: #fff url("assets/images/cover.png") center / cover no-repeat;
@@ -84,19 +87,19 @@
     }
     .artist-logo {
       display: block;
-      width: min(100%, 280px);
+      width: min(100%, 240px);
       height: auto;
-      margin: 0 auto 20px;
+      margin: 12px auto 4px;
     }
     h1 {
       margin: 0;
       font-family: Georgia, "Yu Mincho", serif;
-      font-size: clamp(29px, 3.6vw, 40px);
+      font-size: clamp(29px, 3vw, 34px);
       font-weight: 400;
       letter-spacing: -.045em;
     }
     .description {
-      margin: 10px 0 30px;
+      margin: 12px 0 0;
       color: var(--muted);
       font-size: 13px;
     }
@@ -208,8 +211,11 @@
     @media (max-width: 700px) {
       .page { width: min(100% - 36px, 450px); padding-top: 20px; }
       main { grid-template-columns: 1fr; gap: 16px; padding: 36px 0 42px; }
-      .cover-wrap { width: min(82%, 330px); }
-      .artist-logo { margin-top: -24px; }
+      .cover-wrap { width: 100%; }
+      .cover { width: min(82%, 330px); }
+      .album-info { text-align: left; }
+      .artist-logo { width: min(100%, 280px); margin: -8px auto 20px; }
+      h1 { font-size: clamp(29px, 3.6vw, 40px); }
       .cover-title { font-size: clamp(48px, 14vw, 68px); }
       .description { margin-bottom: 22px; }
       footer { font-size: 8px; }
@@ -224,13 +230,14 @@
     <main>
       <div class="cover-wrap">
         <div class="cover" role="img" aria-label="アルバムジャケット：黄色いハートに白い文字「わ」が描かれた画像"></div>
+        <div class="album-info">
+          <img class="artist-logo" src="assets/images/logo.png" alt="mikiya" width="1194" height="476">
+          <h1 id="album-title">The 6-Month Debut Aniversary Album</h1>
+          <p class="description">弾き語りを始めて6か月、おめでとう!<br>これからも楽しい音楽ライフを過ごしてね!</p>
+        </div>
       </div>
 
       <section aria-labelledby="album-title">
-        <img class="artist-logo" src="assets/images/logo.png" alt="mikiya" width="1194" height="476">
-        <h1 id="album-title">The 6-Month Debut Aniversary Album</h1>
-        <p class="description">弾き語りを始めて6か月、おめでとう!<br>これからも楽しい音楽ライフを過ごしてね!</p>
-
         <div class="track-list" id="track-list" aria-label="曲一覧"></div>
 
         <div class="timeline">
